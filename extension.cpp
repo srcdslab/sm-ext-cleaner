@@ -53,6 +53,16 @@ static void stripBadChars(string& str)
 
 bool Cleaner::SDK_OnLoad(char *error, size_t maxlength, bool late)
 {
+	// SourceMod loads the same library a second time when it was loaded under another
+	// name (`sm exts load cleaner.ext.2.css` while cleaner.autoload asks for "cleaner").
+	// Both copies share these globals: a second detour on the spew function makes its
+	// trampoline jump back into the first one and the server spins forever.
+	if (g_pDetour)
+	{
+		g_pSM->Format(error, maxlength, "Cleaner is already loaded");
+		return false;
+	}
+
 	CDetourManager::Init(g_pSM->GetScriptingEngine(), 0);
 
 	char szPath[256];
