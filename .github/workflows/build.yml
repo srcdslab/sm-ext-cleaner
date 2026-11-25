@@ -67,12 +67,15 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
-          # hl2sdk-manifests passes -Wno-sync-alignment, which the default clang 14 of
-          # Ubuntu 22.04 rejects (CI failure of 2026-11-25): use clang 15 there.
+          # hl2sdk-manifests passes -Wno-sync-alignment, which clang 14 and 15 (the
+          # Ubuntu 22.04 packages) reject (CI failures of 2026-11-25): use clang 18 from
+          # apt.llvm.org there, keeping the Ubuntu 22.04 glibc for older servers.
           if [ "${{ matrix.os }}" = "ubuntu-22.04" ]; then
-            sudo apt-get install -y clang-15 g++-multilib
-            echo "CC=clang-15" >> $GITHUB_ENV
-            echo "CXX=clang++-15" >> $GITHUB_ENV
+            wget -qO llvm.sh https://apt.llvm.org/llvm.sh
+            sudo bash llvm.sh 18
+            sudo apt-get install -y g++-multilib
+            echo "CC=clang-18" >> $GITHUB_ENV
+            echo "CXX=clang++-18" >> $GITHUB_ENV
           else
             sudo apt-get install -y clang g++-multilib
             echo "CC=clang" >> $GITHUB_ENV
