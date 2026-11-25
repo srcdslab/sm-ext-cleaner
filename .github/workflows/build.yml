@@ -67,9 +67,17 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y clang g++-multilib
-          echo "CC=clang" >> $GITHUB_ENV
-          echo "CXX=clang++" >> $GITHUB_ENV
+          # hl2sdk-manifests passes -Wno-sync-alignment, which the default clang 14 of
+          # Ubuntu 22.04 rejects (CI failure of 2026-11-25): use clang 15 there.
+          if [ "${{ matrix.os }}" = "ubuntu-22.04" ]; then
+            sudo apt-get install -y clang-15 g++-multilib
+            echo "CC=clang-15" >> $GITHUB_ENV
+            echo "CXX=clang++-15" >> $GITHUB_ENV
+          else
+            sudo apt-get install -y clang g++-multilib
+            echo "CC=clang" >> $GITHUB_ENV
+            echo "CXX=clang++" >> $GITHUB_ENV
+          fi
 
       - name: Checking out SourceMod
         uses: actions/checkout@v7
